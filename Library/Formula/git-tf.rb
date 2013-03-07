@@ -2,8 +2,8 @@ require 'formula'
 
 class GitTf < Formula
   homepage 'http://gittf.codeplex.com/'
-  url 'http://download.microsoft.com/download/A/E/2/AE23B059-5727-445B-91CC-15B7A078A7F4/git-tf-2.0.0.20121030.zip'
-  sha1 '0c51b2cc6316f37b9daed5f06d080a12003d3810'
+  url 'http://download.microsoft.com/download/A/E/2/AE23B059-5727-445B-91CC-15B7A078A7F4/git-tf-2.0.2.20130214.zip'
+  sha1 '889c1bba6aba892e570a18a386654a50293efbd0'
 
   depends_on 'maven' unless build.stable?
 
@@ -22,9 +22,9 @@ class GitTf < Formula
 
     libexec.install install_prefix + 'git-tf'
     libexec.install install_prefix + 'lib'
-    libexec.install install_prefix + 'native/macosx'
+    (libexec + "native").install install_prefix + 'native/macosx'
 
-    bin.write_exec_script 'git-tf'
+    bin.write_exec_script libexec/'git-tf'
     (share/'doc/git-tf').install Dir['Git-TF_*'] + Dir['ThirdPartyNotices*']
   end
 
