@@ -4,14 +4,14 @@ class Dart < Formula
   homepage 'http://www.dartlang.org/'
 
   if MacOS.prefer_64_bit?
-    url 'https://gsdview.appspot.com/dart-editor-archive-integration/18717/dartsdk-macos-64.zip'
-    sha1 '2ef8841fdf21c29f97813863c4c20d3952789e36'
+    url 'http://storage.googleapis.com/dart-archive/channels/stable/release/37348/sdk/dartsdk-macos-x64-release.zip'
+    sha1 '5de0801c3140929b9e32d837a7ca0ac4b34422fa'
   else
-    url 'https://gsdview.appspot.com/dart-editor-archive-integration/18717/dartsdk-macos-32.zip'
-    sha1 '360e7eea55b8adda3c2635df964d75664eb82ad2'
+    url 'http://storage.googleapis.com/dart-archive/channels/stable/release/37348/sdk/dartsdk-macos-ia32-release.zip'
+    sha1 'f0a2603e32d4fbc3f5553875f0044705d693cca8'
   end
 
-  version '18717'
+  version '1.4.3'
 
   def install
     libexec.install Dir['*']
@@ -19,16 +19,19 @@ class Dart < Formula
     bin.write_exec_script Dir["#{libexec}/bin/{pub,dart?*}"]
   end
 
+  def caveats; <<-EOS.undent
+    To use with IntelliJ, set the Dart home to:
+      #{opt_libexec}
+    EOS
+  end
+
   test do
     (testpath/'sample.dart').write <<-EOS.undent
       void main() {
-        Options opts = new Options();
-        for (String arg in opts.arguments) {
-          print(arg);
-        }
+        print(r"test message");
       }
     EOS
 
-    `#{bin}/dart sample.dart test message` == "test\nmessage\n"
+    assert_equal "test message\n", `#{bin}/dart sample.dart`
   end
 end

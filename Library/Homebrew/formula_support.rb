@@ -1,131 +1,5 @@
-require 'download_strategy'
-require 'checksums'
-require 'version'
-
-class SoftwareSpec
-  attr_reader :checksum, :mirrors, :specs
-
-  def initialize url=nil, version=nil
-    @url = url
-    @version = version
-    @mirrors = []
-    @specs = {}
-  end
-
-  def download_strategy
-    @download_strategy ||= DownloadStrategyDetector.detect(@url, @using)
-  end
-
-  def verify_download_integrity fn
-    fn.verify_checksum @checksum
-  rescue ChecksumMissingError
-    opoo "Cannot verify package integrity"
-    puts "The formula did not provide a download checksum"
-    puts "For your reference the SHA1 is: #{fn.sha1}"
-  rescue ChecksumMismatchError => e
-    e.advice = <<-EOS.undent
-    Archive: #{fn}
-    (To retry an incomplete download, remove the file above.)
-    EOS
-    raise e
-  end
-
-  # The methods that follow are used in the block-form DSL spec methods
-  Checksum::TYPES.each do |cksum|
-    class_eval %Q{
-      def #{cksum}(val=nil)
-        if val.nil?
-          @checksum if @checksum.nil? or @checksum.hash_type == :#{cksum}
-        else
-          @checksum = Checksum.new(:#{cksum}, val)
-        end
-      end
-    }
-  end
-
-  def url val=nil, specs={}
-    return @url if val.nil?
-    @url = val
-    @using = specs.delete(:using)
-    @specs.merge!(specs)
-  end
-
-  def version val=nil
-    @version ||= case val
-      when nil then Version.parse(@url)
-      when Hash
-        key, value = val.shift
-        scheme = VersionSchemeDetector.new(value).detect
-        scheme.new(key)
-      else Version.new(val)
-      end
-  end
-
-  def mirror val
-    @mirrors ||= []
-    @mirrors << val
-  end
-end
-
-class HeadSoftwareSpec < SoftwareSpec
-  def initialize url=nil, version=Version.new(:HEAD)
-    super
-  end
-
-  def verify_download_integrity fn
-    return
-  end
-end
-
-class Bottle < SoftwareSpec
-  attr_writer :url
-  # TODO: Can be removed when all bottles migrated to underscored cat symbols.
-  attr_reader :cat_without_underscores
-
-  def initialize
-    super
-    @revision = 0
-    @cellar = '/usr/local/Cellar'
-    @cat_without_underscores = false
-  end
-
-  # Checksum methods in the DSL's bottle block optionally take
-  # a Hash, which indicates the platform the checksum applies on.
-  Checksum::TYPES.each do |cksum|
-    class_eval %Q{
-      def #{cksum}(val=nil)
-        @#{cksum} ||= Hash.new
-        case val
-        when nil
-          @#{cksum}[MacOS.cat]
-        when Hash
-          key, value = val.shift
-          @#{cksum}[value] = Checksum.new(:#{cksum}, key)
-        end
-
-        if @#{cksum}.has_key? MacOS.cat
-          @checksum = @#{cksum}[MacOS.cat]
-        elsif @#{cksum}.has_key? MacOS.cat_without_underscores
-          @checksum = @#{cksum}[MacOS.cat_without_underscores]
-          @cat_without_underscores = true
-        end
-      end
-    }
-  end
-
-  def root_url val=nil
-    val.nil? ? @root_url : @root_url = val
-  end
-
-  def cellar val=nil
-    val.nil? ? @cellar : @cellar = val
-  end
-
-  def revision val=nil
-    val.nil? ? @revision : @revision = val
-  end
-end
-
+# Used to track formulae that cannot be installed at the same time
+FormulaConflict = Struct.new(:name, :reason)
 
 # Used to annotate formulae that duplicate OS X provided software
 # or cause conflicts when linked in.
@@ -135,14 +9,19 @@ class KegOnlyReason
   def initialize reason, explanation=nil
     @reason = reason
     @explanation = explanation
-    @valid = case @reason
-      when :provided_pre_mountain_lion then MacOS.version < :mountain_lion
-      else true
-      end
   end
 
   def valid?
-    @valid
+    case @reason
+    when :provided_pre_mountain_lion
+      MacOS.version < :mountain_lion
+    when :provided_until_xcode43
+      MacOS::Xcode.version < "4.3"
+    when :provided_until_xcode5
+      MacOS::Xcode.version < "5.0"
+    else
+      true
+    end
   end
 
   def to_s
@@ -158,6 +37,10 @@ class KegOnlyReason
 
       #{@explanation}
       EOS
+    when :provided_until_xcode43
+      "Xcode provides this software prior to version 4.3.\n\n#{explanation}"
+    when :provided_until_xcode5
+      "Xcode provides this software prior to version 5.\n\n#{explanation}"
     else
       @reason
     end.strip

@@ -2,24 +2,63 @@ require 'formula'
 
 class Rethinkdb < Formula
   homepage 'http://www.rethinkdb.com/'
-  url 'https://github.com/rethinkdb/rethinkdb/archive/v1.3.2.tar.gz'
-  sha1 '8956087fb98f32fa5a320e696e28b239afe03ab4'
+  url 'http://download.rethinkdb.com/dist/rethinkdb-1.13.0.tgz'
+  sha1 '82a83519222f2d7d584c1245a49dd887490e3e0a'
 
-  head 'https://github.com/rethinkdb/rethinkdb.git'
+  bottle do
+    sha1 "84bf74e8ff29ba949f1f633f3688c8ce7df18b1f" => :mavericks
+    sha1 "56623f723b6526ca34c6893ac675e816f590af74" => :mountain_lion
+    sha1 "8f51166c948dfb1a9500201d37ebb2f1b1480ea7" => :lion
+  end
 
-  depends_on 'node' => :build
-  depends_on 'protobuf' => :build
+  depends_on :macos => :lion
   depends_on 'boost' => :build
-  depends_on 'v8'
-  depends_on 'less' => :node
-  depends_on 'coffee-script' => :node
-  depends_on 'handlebars' => :node if build.head?
+
+  fails_with :gcc do
+    build 5666 # GCC 4.2.1
+    cause 'RethinkDB uses C++0x'
+  end
 
   def install
-    cd "src" do
-      system "make DEBUG=0 WEBRESDIR=#{share}/rethinkdb/web"
-    end
-    bin.install 'build/release/rethinkdb'
-    (share/'rethinkdb').install 'build/release/web'
+    args = ["--prefix=#{prefix}"]
+
+    # brew's v8 is too recent. rethinkdb uses an older v8 API
+    args += ["--fetch", "v8"]
+
+    # rethinkdb requires that protobuf be linked against libc++
+    # but brew's protobuf is sometimes linked against libstdc++
+    args += ["--fetch", "protobuf"]
+
+    system "./configure", *args
+    system "make"
+    system "make install-osx"
+  end
+
+  def plist; <<-EOS.undent
+    <?xml version="1.0" encoding="UTF-8"?>
+    <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+    <plist version="1.0">
+    <dict>
+      <key>Label</key>
+      <string>#{plist_name}</string>
+      <key>ProgramArguments</key>
+      <array>
+          <string>#{opt_bin}/rethinkdb</string>
+          <string>-d</string>
+          <string>#{var}/rethinkdb</string>
+      </array>
+      <key>WorkingDirectory</key>
+      <string>#{HOMEBREW_PREFIX}</string>
+      <key>StandardOutPath</key>
+      <string>#{var}/log/rethinkdb/rethinkdb.log</string>
+      <key>StandardErrorPath</key>
+      <string>#{var}/log/rethinkdb/rethinkdb.log</string>
+      <key>RunAtLoad</key>
+      <true/>
+      <key>KeepAlive</key>
+      <true/>
+    </dict>
+    </plist>
+    EOS
   end
 end

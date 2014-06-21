@@ -1,7 +1,7 @@
+require 'cxxstdlib'
 require 'ostruct'
-require 'formula'
 require 'options'
-require 'vendor/multi_json'
+require 'utils/json'
 
 # Inherit from OpenStruct to gain a generic initialization method that takes a
 # hash and creates an attribute for each key and value. `Tab.new` probably
@@ -10,25 +10,29 @@ require 'vendor/multi_json'
 class Tab < OpenStruct
   FILENAME = 'INSTALL_RECEIPT.json'
 
-  def self.create f, args
-    f.build.args = args
+  def self.create f, compiler, stdlib, args
+    build = f.build.dup
+    build.args = args
 
     sha = HOMEBREW_REPOSITORY.cd do
       `git rev-parse --verify -q HEAD 2>/dev/null`.chuzzle
     end
 
-    Tab.new :used_options => f.build.used_options,
-            :unused_options => f.build.unused_options,
+    Tab.new :used_options => build.used_options,
+            :unused_options => build.unused_options,
             :tabfile => f.prefix.join(FILENAME),
             :built_as_bottle => !!ARGV.build_bottle?,
+            :poured_from_bottle => false,
             :tapped_from => f.tap,
-            :time => Time.now.to_i, # to_s would be better but Ruby has no from_s function :P
-            :HEAD => sha
+            :time => Time.now.to_i,
+            :HEAD => sha,
+            :compiler => compiler,
+            :stdlib => stdlib
   end
 
   def self.from_file path
-    tab = Tab.new MultiJson.decode(open(path).read)
-    tab.tabfile = path
+    tab = Tab.new Utils::JSON.load(File.read(path))
+    tab.tabfile = path.realpath
     tab
   end
 
@@ -42,20 +46,37 @@ class Tab < OpenStruct
     end
   end
 
+  def self.for_name name
+    for_formula(Formula.factory(name))
+  end
+
   def self.for_formula f
-    f = Formula.factory(f)
-    path = [f.opt_prefix, f.linked_keg].map{ |pn| pn.join(FILENAME) }.find{ |pn| pn.exist? }
-    # Legacy kegs may lack a receipt. If it doesn't exist, fake one
-    if path.nil? then self.dummy_tab(f) else self.from_file(path) end
+    paths = [f.opt_prefix, f.linked_keg]
+
+    if f.rack.directory? && (dirs = f.rack.subdirs).length == 1
+      paths << dirs.first
+    end
+
+    paths << f.prefix
+
+    path = paths.map { |pn| pn.join(FILENAME) }.find(&:file?)
+
+    if path
+      from_file(path)
+    else
+      dummy_tab(f)
+    end
   end
 
   def self.dummy_tab f=nil
     Tab.new :used_options => [],
             :unused_options => (f.build.as_flags rescue []),
             :built_as_bottle => false,
+            :poured_from_bottle => false,
             :tapped_from => "",
             :time => nil,
-            :HEAD => nil
+            :HEAD => nil,
+            :compiler => :clang
   end
 
   def with? name
@@ -88,17 +109,41 @@ class Tab < OpenStruct
     used_options + unused_options
   end
 
+  def cxxstdlib
+    # Older tabs won't have these values, so provide sensible defaults
+    lib = stdlib.to_sym if stdlib
+    cc = compiler || MacOS.default_compiler
+    CxxStdlib.new(lib, cc.to_sym)
+  end
+
   def to_json
-    MultiJson.encode({
-      :used_options => used_options.to_a,
-      :unused_options => unused_options.to_a,
+    Utils::JSON.dump({
+      :used_options => used_options.map(&:to_s),
+      :unused_options => unused_options.map(&:to_s),
       :built_as_bottle => built_as_bottle,
+      :poured_from_bottle => poured_from_bottle,
       :tapped_from => tapped_from,
       :time => time,
-      :HEAD => send("HEAD")})
+      :HEAD => self.HEAD,
+      :stdlib => (stdlib.to_s if stdlib),
+      :compiler => (compiler.to_s if compiler)})
   end
 
   def write
-    tabfile.write to_json
+    tabfile.atomic_write(to_json)
+  end
+
+  def to_s
+    s = []
+    case poured_from_bottle
+    when true  then s << "Poured from bottle"
+    when false then s << "Built from source"
+    end
+    unless used_options.empty?
+      s << "Installed" if s.empty?
+      s << "with:"
+      s << used_options.to_a.join(", ")
+    end
+    s.join(" ")
   end
 end

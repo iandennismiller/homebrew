@@ -1,27 +1,39 @@
 require 'formula'
 
 class Libcouchbase < Formula
-  homepage 'http://couchbase.com/develop/c/current'
-  url 'http://packages.couchbase.com/clients/c/libcouchbase-2.0.4.tar.gz'
-  sha1 'c7cde7a7985dd529563554e501c2406a8baf7506'
+  homepage 'http://couchbase.com/communities/c'
+  url 'http://packages.couchbase.com/clients/c/libcouchbase-2.3.1.tar.gz'
+  sha1 '0718239fc53f13315adfe80baffe439abe600296'
 
+  option :universal
   option 'with-libev-plugin', 'Build libev IO plugin (will pull libev dependency)'
   option 'without-libevent-plugin', 'Do not build libevent plugin (will remove libevent dependency)'
 
-  depends_on 'libev' if build.include?('with-libev-plugin')
-  depends_on 'libevent' unless build.include?('without-libevent-plugin')
+  depends_on 'libev' if build.with?('libev-plugin')
+  depends_on 'libevent' if build.with?('libevent-plugin')
 
   def install
-    system "./configure", "--disable-debug",
-                          "--disable-dependency-tracking",
-                          "--prefix=#{prefix}",
-                          "--disable-examples",
-                          "--disable-tests", # don't download google-test framework
-                          "--disable-couchbasemock"
+    args = [
+      "--disable-debug",
+      "--disable-dependency-tracking",
+      "--prefix=#{prefix}",
+      "--disable-examples",
+      "--disable-tests", # don't download google-test framework
+      "--disable-couchbasemock"
+    ]
+    if build.universal?
+      args << "--enable-fat-binary"
+      ENV.universal_binary
+    end
+    if build.without?('libev-plugin') && build.without?("libevent-plugin")
+      # do not do plugin autodiscovery
+      args << "--disable-plugins"
+    end
+    system "./configure", *args
     system "make install"
   end
 
-  def test
-    system "#{bin}/cbc-version"
+  test do
+    system "#{bin}/cbc", "version"
   end
 end

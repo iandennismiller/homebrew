@@ -1,14 +1,16 @@
 require 'formula'
 
 class IcalBuddy < Formula
+  # NOTE: the official tarball doesn't actually contain any source,
+  # just a prebuilt i386 binary
   homepage 'http://hasseg.org/icalBuddy/'
-  url 'http://hasseg.org/icalBuddy/1.8.6/icalBuddy-v1.8.6.zip'
-  sha1 '0383ec1545fd3e5633d0e61c8d4fd6c72a68ce8b'
-
-  head 'http://hasseg.org/git-public/icalBuddy.git'
+  head 'https://github.com/ali-rantakari/icalBuddy.git'
+  url 'https://github.com/ali-rantakari/icalBuddy.git', :tag => 'v1.8.8'
 
   def install
-    system "make icalBuddy icalBuddy.1 icalBuddyLocalization.1 icalBuddyConfig.1"
+    args = %W[icalBuddy icalBuddy.1 icalBuddyLocalization.1
+      icalBuddyConfig.1 COMPILER=#{ENV.cc}]
+    system "make", *args
     bin.install "icalBuddy"
     man1.install Dir["*.1"]
   end

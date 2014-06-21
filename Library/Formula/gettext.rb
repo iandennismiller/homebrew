@@ -2,28 +2,19 @@ require 'formula'
 
 class Gettext < Formula
   homepage 'http://www.gnu.org/software/gettext/'
-  url 'http://ftpmirror.gnu.org/gettext/gettext-0.18.2.tar.gz'
-  mirror 'http://ftp.gnu.org/gnu/gettext/gettext-0.18.2.tar.gz'
-  sha256 '516a6370b3b3f46e2fc5a5e222ff5ecd76f3089bc956a7587a6e4f89de17714c'
+  url 'http://ftpmirror.gnu.org/gettext/gettext-0.18.3.2.tar.gz'
+  mirror 'http://ftp.gnu.org/gnu/gettext/gettext-0.18.3.2.tar.gz'
+  sha256 'd1a4e452d60eb407ab0305976529a45c18124bd518d976971ac6dc7aa8b4c5d7'
+
+  bottle do
+    sha1 "b051e525a42aa11242dc80afd19aa914d38b1e4b" => :mavericks
+    sha1 "a1e9a0835d6f2ac2134ac3583e40ac3e4315c5d0" => :mountain_lion
+    sha1 "674f284e9fb6be58df47b788a84eaa5a0c64d195" => :lion
+  end
 
   keg_only "OS X provides the BSD gettext library and some software gets confused if both are in the library path."
 
-  bottle do
-   sha1 'f5347eea2def6a8649075fe2ca306ce5fa2a5338' => :mountain_lion
-   sha1 '003ba77411550fd471b599c2694bba36d343e98f' => :lion
-   sha1 '976ec00f7046b639b8a687b3316a575031859114' => :snow_leopard
-  end
-
   option :universal
-  option 'with-examples', 'Keep example files'
-
-  def patches
-    unless build.include? 'with-examples'
-      # Use a MacPorts patch to disable building examples at all,
-      # rather than build them and remove them afterwards.
-      {:p0 => ['https://trac.macports.org/export/102008/trunk/dports/devel/gettext/files/patch-gettext-tools-Makefile.in']}
-    end
-  end
 
   def install
     ENV.libxml2
@@ -36,7 +27,9 @@ class Gettext < Formula
                           "--with-included-glib",
                           "--with-included-libcroco",
                           "--with-included-libunistring",
-                          "--without-emacs",
+                          "--with-emacs",
+                          "--disable-java",
+                          "--disable-csharp",
                           # Don't use VCS systems to create these archives
                           "--without-git",
                           "--without-cvs"

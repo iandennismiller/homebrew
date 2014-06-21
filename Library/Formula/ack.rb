@@ -1,19 +1,22 @@
 require 'formula'
 
 class Ack < Formula
-  homepage 'http://betterthangrep.com/'
-  url "https://github.com/petdance/ack/tarball/1.96"
-  sha1 '547058c0571095beaee9b2e6a3accad52114e759'
+  homepage 'http://beyondgrep.com/'
+  url 'http://beyondgrep.com/ack-2.12-single-file'
+  sha1 '667b5f2dd83143848a5bfa47f7ba848cbe556e93'
+  version '2.12'
 
   def install
-    system 'pod2man', 'ack', 'ack.1'
-    man1.install 'ack.1'
-    bin.install 'ack'
-    bash_completion.install 'etc/ack.bash_completion.sh'
-    zsh_completion.install 'etc/ack.zsh_completion' => '_ack'
+    bin.install "ack-#{version}-single-file" => "ack"
+    system "pod2man", "#{bin}/ack", "ack.1"
+    man1.install "ack.1"
   end
 
   test do
-    system "#{bin}/ack", 'brew', '/usr/share/dict/words'
+    IO.popen("#{bin}/ack --noenv --nocolor bar -", "w+") do |pipe|
+      pipe.write "foo\nfoo bar\nbaz"
+      pipe.close_write
+      assert_equal "foo bar\n", pipe.read
+    end
   end
 end

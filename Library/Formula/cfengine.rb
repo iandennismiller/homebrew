@@ -2,24 +2,25 @@ require 'formula'
 
 class Cfengine < Formula
   homepage 'http://cfengine.com/'
-  url 'https://cfengine.com/source-code/download?file=cfengine-3.4.3.tar.gz'
-  sha1 '71240fc35ab0a14783544af819cbf50543341b66'
+  url 'http://s3.amazonaws.com/cfengine.package-repos/tarballs/cfengine-3.6.0.tar.gz'
+  sha1 '6358981f836c8e09da154290b1f4285d3dc9562c'
 
-  depends_on 'tokyo-cabinet'
   depends_on 'pcre'
+  depends_on 'tokyo-cabinet'
+  depends_on 'libxml2' if MacOS.version < :mountain_lion
 
   def install
-    # Find our libpcre
-    ENV.append 'LDFLAGS', "-L#{HOMEBREW_PREFIX}/lib"
-
     system "./configure", "--disable-dependency-tracking",
                           "--prefix=#{prefix}",
                           "--with-workdir=#{var}/cfengine",
-                          "--with-tokyocabinet"
+                          "--with-tokyocabinet",
+                          "--with-pcre=#{Formula['pcre'].opt_prefix}",
+                          "--without-mysql",
+                          "--without-postgresql"
     system "make install"
   end
 
-  def test
+  test do
     system "#{bin}/cf-agent", "-V"
   end
 end

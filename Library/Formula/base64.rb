@@ -6,9 +6,18 @@ class Base64 < Formula
   sha1 '25b5ae71c2818c7a489065ca1637806cd5109524'
 
   def install
-    system "./configure", "--disable-debug", "--disable-dependency-tracking",
-                          "--prefix=#{prefix}"
+    system "./configure", "--disable-debug", "--disable-dependency-tracking"
     system "make"
     bin.install "base64"
+    man1.install "base64.1"
+  end
+
+  test do
+    path = testpath/"a.txt"
+    path.write "hello"
+
+    output = `#{bin}/base64 #{path}`.strip
+    assert_equal "aGVsbG8=", output
+    assert_equal 0, $?.exitstatus
   end
 end

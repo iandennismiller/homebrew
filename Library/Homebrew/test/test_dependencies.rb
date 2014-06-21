@@ -2,7 +2,7 @@ require 'testing_env'
 require 'dependencies'
 require 'dependency'
 
-class DependenciesTests < Test::Unit::TestCase
+class DependenciesTests < Homebrew::TestCase
   def setup
     @deps = Dependencies.new
   end
@@ -44,5 +44,37 @@ class DependenciesTests < Test::Unit::TestCase
     dep = Dependency.new("foo")
     @deps << dep
     assert_equal [dep], @deps.to_ary
+  end
+
+  def test_type_helpers
+    foo = Dependency.new("foo")
+    bar = Dependency.new("bar", [:optional])
+    baz = Dependency.new("baz", [:build])
+    qux = Dependency.new("qux", [:recommended])
+    quux = Dependency.new("quux")
+    @deps << foo << bar << baz << qux << quux
+    assert_equal [foo, quux], @deps.required
+    assert_equal [bar], @deps.optional
+    assert_equal [baz], @deps.build
+    assert_equal [qux], @deps.recommended
+    assert_equal [foo, baz, quux, qux].sort_by(&:name), @deps.default.sort_by(&:name)
+  end
+
+  def test_equality
+    a = Dependencies.new
+    b = Dependencies.new
+
+    dep = Dependency.new("foo")
+
+    a << dep
+    b << dep
+
+    assert_equal a, b
+    assert a.eql?(b)
+
+    b << Dependency.new("bar", [:optional])
+
+    refute_equal a, b
+    assert !a.eql?(b)
   end
 end

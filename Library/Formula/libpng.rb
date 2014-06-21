@@ -1,24 +1,25 @@
-require 'formula'
+require "formula"
 
 class Libpng < Formula
-  homepage 'http://www.libpng.org/pub/png/libpng.html'
-  url 'http://downloads.sf.net/project/libpng/libpng15/older-releases/1.5.13/libpng-1.5.13.tar.gz'
-  sha1 '43a86bc5ba927618fd6c440bc4fd770d87d06b80'
+  homepage "http://www.libpng.org/pub/png/libpng.html"
+  url "https://downloads.sf.net/project/libpng/libpng16/1.6.12/libpng-1.6.12.tar.gz"
+  sha1 "6bcd6efa7f20ccee51e70453426d7f4aea7cf4bb"
+
+  bottle do
+    cellar :any
+    sha1 "6b82dd8fc966b83b15ab27224f864a384b7b766d" => :mavericks
+    sha1 "7136c93b5cdc9acc6fd777bb17668e272a7ba55d" => :mountain_lion
+    sha1 "2672437209e1207f51135d8e8efa1db5a4852499" => :lion
+  end
 
   keg_only :provided_pre_mountain_lion
 
   option :universal
 
-  bottle do
-    revision 1
-    sha1 '7aea90896440277ef84dfaf35cc9f08cfa024331' => :mountain_lion
-    sha1 '8cb9f898522ea356a8dbd8dca13a8ede31f9140c' => :lion
-    sha1 'fc51e3ebca7b1b3d57c54957e10c22e2900585f3' => :snow_leopard
-  end
-
   def install
     ENV.universal_binary if build.universal?
     system "./configure", "--disable-dependency-tracking",
+                          "--disable-silent-rules",
                           "--prefix=#{prefix}"
     system "make install"
   end

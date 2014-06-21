@@ -2,13 +2,13 @@ require 'formula'
 
 class Libcec < Formula
   homepage 'http://libcec.pulse-eight.com/'
-  url 'https://github.com/Pulse-Eight/libcec/archive/libcec-2.0.5-repack.zip'
-  sha1 '94b2c94439156c13499620777bfe03900016879a'
+  url 'https://github.com/Pulse-Eight/libcec/archive/libcec-2.1.4.tar.gz'
+  sha1 '3ee241201b3650b97ec4fc41b0f5dd33476080f9'
 
-  depends_on :autoconf
-  depends_on :automake
-  depends_on :libtool
-  depends_on 'pkg-config' => :build
+  depends_on "autoconf" => :build
+  depends_on "automake" => :build
+  depends_on "libtool" => :build
+  depends_on "pkg-config" => :build
 
   def install
     system "./bootstrap"
@@ -17,7 +17,7 @@ class Libcec < Formula
     system "make install"
   end
 
-  def test
+  test do
     system "#{bin}/cec-client", "--info"
   end
 end

@@ -2,15 +2,15 @@ require 'formula'
 
 class Dylibbundler < Formula
   homepage 'http://macdylibbundler.sourceforge.net'
-  url 'http://sourceforge.net/projects/macdylibbundler/files/macdylibbundler/0.4.3/dylibbundler-0.4.3.zip'
-  sha1 '9335f16ea90a375151707b03e59a7c5de41c39a9'
+  url 'https://downloads.sourceforge.net/project/macdylibbundler/macdylibbundler/0.4.4/dylibbundler-0.4.4.zip'
+  sha1 '8d120bababc5218927447cf7fec57abf5d093ff6'
 
   def install
     system "make"
     bin.install "dylibbundler"
   end
 
-  def test
+  test do
     system "#{bin}/dylibbundler", "-h"
   end
 

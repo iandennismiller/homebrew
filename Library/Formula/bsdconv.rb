@@ -4,8 +4,8 @@ require 'formula'
 
 class Bsdconv < Formula
   homepage 'https://github.com/buganini/bsdconv'
-  url 'https://github.com/buganini/bsdconv/tarball/9.1'
-  sha1 '282fa6f2bcb6ef3b73f19ef269ecc917edcde729'
+  url 'https://github.com/buganini/bsdconv/archive/11.3.1.tar.gz'
+  sha1 'cec116e2a13b85abafa15011301fb539d2fd5244'
 
   head 'https://github.com/buganini/bsdconv.git'
 
@@ -14,8 +14,14 @@ class Bsdconv < Formula
     system "make", "PREFIX=#{prefix}", "install"
   end
 
-  def test
-    printf = 'printf "\263\134\245\134\273\134"'
-    system "test `#{printf} | #{bin}/bsdconv big5:utf-8` = '許功蓋'"
+  test do
+    require 'open3'
+    Open3.popen3("#{bin}/bsdconv", "big5:utf-8") do |stdin, stdout, _|
+      stdin.write("\263\134\245\134\273\134")
+      stdin.close
+      result = stdout.read
+      result.force_encoding(Encoding::UTF_8) if result.respond_to?(:force_encoding)
+      assert_equal "許功蓋", result
+    end
   end
 end
