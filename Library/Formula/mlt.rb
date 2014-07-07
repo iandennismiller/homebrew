@@ -15,6 +15,7 @@ class Mlt < Formula
   depends_on "libvorbis"
   depends_on "sdl"
   depends_on "sox"
+  depends_on "swig"
 
   depends_on "gtk+" => :optional
 
@@ -27,7 +28,8 @@ class Mlt < Formula
 
     args = ["--prefix=#{prefix}",
             "--disable-jackrack",
-            "--disable-swfdec"]
+            "--disable-swfdec",
+            "--swig-languages=python"]
 
     args << "--disable-gtk" if build.without? "gtk"
 
