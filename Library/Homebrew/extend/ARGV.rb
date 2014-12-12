@@ -1,15 +1,23 @@
 module HomebrewArgvExtension
   def named
-    @named ||= reject{|arg| arg[0..0] == '-'}
+    @named ||= self - options_only
   end
 
   def options_only
-    select {|arg| arg[0..0] == '-'}
+    select { |arg| arg.start_with?("-") }
+  end
+
+  def flags_only
+    select { |arg| arg.start_with?("--") }
   end
 
   def formulae
     require "formula"
-    @formulae ||= downcased_unique_named.map { |name| Formulary.factory(name, spec) }
+    @formulae ||= (downcased_unique_named - casks).map { |name| Formulary.factory(name, spec) }
+  end
+
+  def casks
+    @casks ||= downcased_unique_named.grep HOMEBREW_CASK_TAP_FORMULA_REGEX
   end
 
   def kegs
@@ -42,7 +50,6 @@ module HomebrewArgvExtension
           Multiple kegs installed to #{rack}
           However we don't know which one you refer to.
           Please delete (with rm -rf!) all but one and then try again.
-          Sorry, we know this is lame.
         EOS
       end
     end
@@ -81,6 +88,10 @@ module HomebrewArgvExtension
   end
   def dry_run?
     include?('--dry-run') || switch?('n')
+  end
+
+  def git?
+    flag? "--git"
   end
 
   def homebrew_developer?
@@ -136,9 +147,7 @@ module HomebrewArgvExtension
   end
 
   def flag? flag
-    options_only.any? do |arg|
-      arg == flag || arg[1..1] != '-' && arg.include?(flag[2..2])
-    end
+    options_only.include?(flag) || switch?(flag[2, 1])
   end
 
   def force_bottle?
@@ -146,11 +155,9 @@ module HomebrewArgvExtension
   end
 
   # eg. `foo -ns -i --bar` has three switches, n, s and i
-  def switch? switch_character
-    return false if switch_character.length > 1
-    options_only.any? do |arg|
-      arg[1..1] != '-' && arg.include?(switch_character)
-    end
+  def switch? char
+    return false if char.length > 1
+    options_only.any? { |arg| arg[1, 1] != "-" && arg.include?(char) }
   end
 
   def usage
@@ -166,6 +173,8 @@ module HomebrewArgvExtension
     value 'env'
   end
 
+  private
+
   def spec
     if include?("--HEAD")
       :head
@@ -175,8 +184,6 @@ module HomebrewArgvExtension
       :stable
     end
   end
-
-  private
 
   def downcased_unique_named
     # Only lowercase names, not paths or URLs

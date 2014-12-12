@@ -2,15 +2,15 @@ require "formula"
 
 class Parrot < Formula
   homepage "http://www.parrot.org/"
-  url "ftp://ftp.parrot.org/pub/parrot/releases/supported/6.3.0/parrot-6.3.0.tar.bz2"
-  sha256 "8d64df21751770741dac263e621275f04ce7493db6f519e3f4886a085161a80d"
-
-  devel do
-    url "ftp://ftp.parrot.org/pub/parrot/releases/devel/6.5.0/parrot-6.5.0.tar.bz2"
-    sha256 "1f45044f8dcfaafef795e93a91c8f4a55dd8347cc0359ce4dcf6f34f7bfff140"
-  end
-
   head "https://github.com/parrot/parrot.git"
+  url "ftp://ftp.parrot.org/pub/parrot/releases/supported/6.9.0/parrot-6.9.0.tar.bz2"
+  sha256 "ad5f3723c216675b9ebc2e3d3807d24fd13aa55e1eb3e7ffcad4062e0026f482"
+
+  bottle do
+    sha1 "8cadb0beb3984785d995a64847ed78b279798cee" => :yosemite
+    sha1 "da39dec1f80b1fa5192ed3b72ca53b7333e8ca3b" => :mavericks
+    sha1 "d09c985f1f51ecf6bed935da78311cb650b23ba7" => :mountain_lion
+  end
 
   conflicts_with "rakudo-star"
 

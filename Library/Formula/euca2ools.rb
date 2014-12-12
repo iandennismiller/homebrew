@@ -4,7 +4,7 @@ class Euca2ools < Formula
   homepage "https://github.com/eucalyptus/euca2ools"
   url "https://github.com/eucalyptus/euca2ools/archive/v3.1.0.tar.gz"
   sha1 "5290172546707f3729da314535a7a9a429edda24"
-  head "https://github.com/eucalyptus/euca2ools.git", :branch => "master"
+  head "https://github.com/eucalyptus/euca2ools.git"
 
   depends_on :python if MacOS.version <= :snow_leopard
 
@@ -36,13 +36,10 @@ class Euca2ools < Formula
   def install
     ENV["PYTHONPATH"] = lib+"python2.7/site-packages"
     ENV.prepend_create_path "PYTHONPATH", libexec+"lib/python2.7/site-packages"
-    install_args = ["setup.py", "install", "--prefix=#{libexec}"]
 
-    resource("requestbuilder").stage { system "python", *install_args }
-    resource("requests").stage { system "python", *install_args }
-    resource("setuptools").stage { system "python", *install_args }
-    resource("lxml").stage { system "python", *install_args }
-    resource("six").stage { system "python", *install_args }
+    resources.each do |r|
+      r.stage { system "python", "setup.py", "install", "--prefix=#{libexec}" }
+    end
 
     system "python", "setup.py", "install", "--single-version-externally-managed", "--record=installed.txt",
            "--prefix=#{prefix}"

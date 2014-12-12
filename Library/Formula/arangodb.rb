@@ -2,28 +2,35 @@ require 'formula'
 
 class Arangodb < Formula
   homepage 'http://www.arangodb.org/'
-  url 'https://github.com/triAGENS/ArangoDB/archive/v2.1.2.tar.gz'
-  sha1 '3f6cc8c7dc757f995c61effcd74523e0f5a60f98'
+  url 'https://www.arangodb.com/repositories/Source/ArangoDB-2.3.2.tar.gz'
+  sha1 'dff048b051d04d4f2f169dbb446589d0c886c759'
 
   head "https://github.com/triAGENS/ArangoDB.git", :branch => 'unstable'
 
   bottle do
-    sha1 "2696710c1befec12be71b55ca5f70927fd4716b7" => :mavericks
-    sha1 "52cf255b9115104cb01a133290621da7a161595e" => :mountain_lion
-    sha1 "9dfaba919243e834b5f526de1b061c5e5a241252" => :lion
+    sha1 "400031de8f90c2bac57898fe36d6343f9a51aaa2" => :yosemite
+    sha1 "756ce1938ef5ee5f7f3333ef8d55c23a94b2ae52" => :mavericks
+    sha1 "79458b5343ba215854090749c6d8f1f3f39e75a6" => :mountain_lion
   end
 
   depends_on 'go' => :build
+  depends_on 'openssl'
 
-  def suffix
-    if build.stable?
-      return ""
-    else
-      return "-" + (build.devel? ? version : "unstable")
-    end
-  end
+  needs :cxx11
 
   def install
+    # clang on 10.8 will still try to build against libstdc++,
+    # which fails because it doesn't have the C++0x features
+    # arangodb requires.
+    ENV.libcxx
+
+    # Bundled V8 tries to build with a 10.5 deployment target,
+    # which causes clang to error out b/c a 10.5 deployment target
+    # and -stdlib=libc++ are not valid together.
+    inreplace "3rdParty/V8/build/standalone.gypi",
+      "'mac_deployment_target%': '10.5',",
+      "'mac_deployment_target%': '#{MacOS.version}',"
+
     args = %W[
       --disable-dependency-tracking
       --prefix=#{prefix}
@@ -34,8 +41,9 @@ class Arangodb < Formula
       --enable-mruby
       --datadir=#{share}
       --localstatedir=#{var}
-      --program-suffix=#{suffix}
     ]
+
+    args << "--program-suffix=unstable" if build.head?
 
     system "./configure", *args
     system "make install"

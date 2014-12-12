@@ -3,14 +3,14 @@ require "formula"
 class TheSilverSearcher < Formula
   homepage "https://github.com/ggreer/the_silver_searcher"
   head "https://github.com/ggreer/the_silver_searcher.git"
-  url "https://github.com/ggreer/the_silver_searcher/archive/0.23.0.tar.gz"
-  sha1 "e0579751932b4d2fdb28e13fdbc8a70e3c952ffc"
+  url "https://github.com/ggreer/the_silver_searcher/archive/0.27.0.tar.gz"
+  sha1 "3d2e85b5d3cb9fd1caccfaee9d8e5d140271b2fd"
 
   bottle do
     cellar :any
-    sha1 "478e004e8d061f762828eef74ee6023c4aae6c4d" => :mavericks
-    sha1 "0240a103ea1a123dd9df52aacfba4582dbacc072" => :mountain_lion
-    sha1 "0613b11684a4cd644ded845364ecaa7e7f09f6f8" => :lion
+    sha1 "451b8f2db79d5f49cb2fafc0951cfc9033de921e" => :yosemite
+    sha1 "f2243c0b86be0041fcd7ec66b0ff4a85e433676d" => :mavericks
+    sha1 "f46f96252d7569c9b2e7e860643c9fbe18b16517" => :mountain_lion
   end
 
   depends_on "autoconf" => :build

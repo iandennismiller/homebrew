@@ -3,25 +3,26 @@ require 'formula'
 class Leptonica < Formula
   homepage 'http://www.leptonica.org/'
   url 'http://www.leptonica.org/source/leptonica-1.71.tar.gz'
-  sha1 'aedaf94cc352a638595b74e906f61204154d8431'
+  sha1 '1ee59b06fd6c6402876f46c26c21b17ffd3c9b6b'
+  revision 1
 
   bottle do
     cellar :any
-    sha1 "6f6326869d561ce0a9e84e74e44b473378b61a93" => :mavericks
-    sha1 "fd06be34e32f2f03a3d52eca57bc303e20a129ba" => :mountain_lion
-    sha1 "e1a096c58bb9f22df80f0484fc22312dc700637a" => :lion
+    sha1 "f492ae6f99b341c2fb1f32cadb44402963e3c8ae" => :yosemite
+    sha1 "793835a4e3b6bb19601f842c7a5de5873e340451" => :mavericks
+    sha1 "cba822e6f2e5d1c87789fbcd6c0e78cef487b134" => :mountain_lion
   end
 
   depends_on 'libpng' => :recommended
   depends_on 'jpeg' => :recommended
-  depends_on 'libtiff' => :optional
+  depends_on 'libtiff' => :recommended
+  depends_on 'giflib' => :optional
+  depends_on 'openjpeg' => :optional
+  depends_on 'webp' => :optional
   depends_on 'pkg-config' => :build
 
   conflicts_with 'osxutils',
     :because => "both leptonica and osxutils ship a `fileinfo` executable."
-
-  ## Patch to fix pkg-config from https://code.google.com/p/leptonica/issues/detail?id=94
-  patch :DATA
 
   def install
     args = %W[
@@ -29,8 +30,12 @@ class Leptonica < Formula
       --prefix=#{prefix}
     ]
 
-    %w[libpng jpeg libtiff].each do |dep|
+    %w[libpng jpeg libtiff giflib].each do |dep|
       args << "--without-#{dep}" if build.without?(dep)
+    end
+    %w[openjpeg webp].each do |dep|
+      args << "--with-lib#{dep}" if build.with?(dep)
+      args << "--without-lib#{dep}" if build.without?(dep)
     end
 
     system "./configure", *args
@@ -47,21 +52,9 @@ class Leptonica < Formula
         return 0;
     }
     EOS
-    system ENV.cxx, "test.cpp", `pkg-config --cflags lept`
+
+    flags = ["-I#{include}/leptonica"] + ENV.cflags.to_s.split
+    system ENV.cxx, "test.cpp", *flags
     assert_equal version.to_s, `./a.out`
   end
 end
-
-__END__
-diff --git a/lept.pc.in b/lept.pc.in
-index 8044ba8..c1b9492 100644
---- a/lept.pc.in
-+++ b/lept.pc.in
-@@ -1,3 +1,5 @@
-+prefix=@prefix@
-+exec_prefix=@exec_prefix@
- libdir=@libdir@
- includedir=@includedir@/leptonica
- 
--- 
-1.9.1

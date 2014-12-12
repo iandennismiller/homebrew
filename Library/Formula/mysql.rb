@@ -1,14 +1,14 @@
-require 'formula'
+require "formula"
 
 class Mysql < Formula
-  homepage 'http://dev.mysql.com/doc/refman/5.6/en/'
-  url "http://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.19.tar.gz"
-  sha1 "4b59d96642c62c26648826ea4f9c30dbf123dbed"
+  homepage "http://dev.mysql.com/doc/refman/5.6/en/"
+  url "http://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.22.tar.gz"
+  sha1 "31ac6f799dd76950b4de9979320129ac04fb38e1"
 
   bottle do
-    sha1 "ec7deacfc46454a65ee36b5399e2845f34a00816" => :mavericks
-    sha1 "ecd5ef4bfaca83afd870e36b9a78c7cf747a0de4" => :mountain_lion
-    sha1 "bda941306a34ec1d7bc58c7bea27052cf922eff8" => :lion
+    sha1 "4cc6f18e16e07736466d71fd0a02ab6f01882948" => :yosemite
+    sha1 "0499e0bf48a4669e066ac921cdfae125b587d244" => :mavericks
+    sha1 "8987fcf7576f6985b741b19f6b12f6a636be52d3" => :mountain_lion
   end
 
   option :universal

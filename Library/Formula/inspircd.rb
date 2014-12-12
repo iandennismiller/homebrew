@@ -2,11 +2,16 @@ require 'formula'
 
 class Inspircd < Formula
   homepage 'http://www.inspircd.org'
-  url 'https://github.com/inspircd/inspircd/archive/v2.0.16.tar.gz'
-  sha1 '5ea8e81124dc933ba289a4eb5782a66874e5d7e4'
-  revision 1
+  url 'https://github.com/inspircd/inspircd/archive/v2.0.18.tar.gz'
+  sha1 '40039d9be51ad28493be16b27c9f20bc7fe617a4'
 
   head 'https://github.com/inspircd/inspircd.git'
+
+  bottle do
+    sha1 "b1def0c5b281422dbe37e89b2104321b33f685d0" => :yosemite
+    sha1 "18db9b5143d5f63677f3dc2fb2eeda09b24334dd" => :mavericks
+    sha1 "5cce454e59cf0a0e67e5d4c2bb1d5d94fe8e831d" => :mountain_lion
+  end
 
   skip_clean 'data'
   skip_clean 'logs'
@@ -14,21 +19,14 @@ class Inspircd < Formula
   depends_on 'pkg-config' => :build
   depends_on 'geoip' => :optional
   depends_on 'gnutls' => :optional
-  depends_on 'libgcrypt' if build.with? 'gnutls'
   depends_on :mysql => :optional
+  depends_on 'openssl' => :optional
   depends_on 'pcre' => :optional
   depends_on 'postgresql' => :optional
   depends_on 'sqlite' => :optional
   depends_on 'tre' => :optional
 
   option 'without-ldap', 'Build without ldap support'
-  option 'without-openssl', 'Build without openssl support'
-
-  # Fix for runtime linker errors when loading modules compiled with LLVM 3.4
-  patch :p1 do
-    url 'https://github.com/inspircd/inspircd/commit/b65fb065b5a77aeea056f88e1b8d96ec8fbea47c.diff'
-    sha1 '13005aa29dd6ee37a30aca805d99789220884c9c'
-  end
 
   def install
     modules = []

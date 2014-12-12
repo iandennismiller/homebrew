@@ -2,19 +2,15 @@ require "formula"
 
 class Libsodium < Formula
   homepage "https://github.com/jedisct1/libsodium/"
-  url "https://github.com/jedisct1/libsodium/releases/download/0.6.0/libsodium-0.6.0.tar.gz"
-  sha256 "84cdb6bf8ae3384f3ef78636f93bc689df748c1d36f87d4b6ab1e31c2d4dd145"
-  revision 1
+  url "https://github.com/jedisct1/libsodium/releases/download/1.0.1/libsodium-1.0.1.tar.gz"
+  sha256 "c3090887a4ef9e2d63af1c1e77f5d5a0656fadb5105ebb9fb66a302210cb3af5"
 
   bottle do
     cellar :any
-    sha1 "17f16784be8dd6f3892fee1e8b765f248b395526" => :mavericks
-    sha1 "34e1cb906d01591db753b44f913bff23d6f24e8c" => :mountain_lion
-    sha1 "68d36857985a73fef90caf6e734b5107ba192ea8" => :lion
+    sha1 "37715a34a7ee3af1b584d4ad1f7ae1561f414a04" => :yosemite
+    sha1 "ae23cbaac10d5b77c89e8bc16ac3fbe5f0965633" => :mavericks
+    sha1 "d80e8038aed95ccaf681317615346cb0255a52b9" => :mountain_lion
   end
-
-  # Required to generate the .pc file, but can be removed at the next release
-  depends_on "pkg-config" => :build
 
   head do
     url "https://github.com/jedisct1/libsodium.git"
@@ -32,7 +28,7 @@ class Libsodium < Formula
 
     system "./configure", "--disable-debug", "--disable-dependency-tracking",
                           "--prefix=#{prefix}"
-    system "make check"
-    system "make install"
+    system "make", "check"
+    system "make", "install"
   end
 end

@@ -2,22 +2,22 @@ require 'formula'
 
 class GstLibav < Formula
   homepage 'http://gstreamer.freedesktop.org'
-  url 'http://gstreamer.freedesktop.org/src/gst-libav/gst-libav-1.2.4.tar.xz'
-  mirror 'http://ftp.osuosl.org/pub/blfs/svn/g/gst-libav-1.2.4.tar.xz'
-  sha256 '2a69480d63fc2db93249d9e2e229ab3541bbc2db881b0f64de13d0bfc7d1f037'
+  url 'http://gstreamer.freedesktop.org/src/gst-libav/gst-libav-1.4.4.tar.xz'
+  mirror 'http://ftp.osuosl.org/pub/blfs/svn/g/gst-libav-1.4.4.tar.xz'
+  sha256 '2ec7285e5ec6731963b0955487cceb9eb04e285ca682f3ef575996c068cde8aa'
 
   bottle do
-    sha1 "628e74ce93cb4c7ccc6ee6918b8d826b7d4e5889" => :mavericks
-    sha1 "5db394b3f092af5a8b022bbc0d31c6359de46e6b" => :mountain_lion
-    sha1 "d58170be4bfdbec2b309aaad06456827c503b71d" => :lion
+    sha1 "77e0e0a6e08f928fb68b491bad6d0115490e2cef" => :yosemite
+    sha1 "5b9ab2328c5c6d5970e085f816d9299252d5ffd3" => :mavericks
+    sha1 "918fd6f368ff1983e6fd8ee985f08c956f48a6cc" => :mountain_lion
   end
 
   head do
     url 'git://anongit.freedesktop.org/gstreamer/gst-libav'
 
-    depends_on :autoconf
-    depends_on :automake
-    depends_on :libtool
+    depends_on "autoconf" => :build
+    depends_on "automake" => :build
+    depends_on "libtool" => :build
     depends_on "gettext"
   end
 
@@ -42,6 +42,6 @@ class GstLibav < Formula
   end
 
   test do
-    system Formula["gstreamer"].opt_prefix/"bin/gst-inspect-1.0", "libav"
+    system "#{Formula["gstreamer"].opt_bin}/gst-inspect-1.0", "libav"
   end
 end

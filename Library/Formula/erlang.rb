@@ -5,26 +5,29 @@ require 'formula'
 # elixir are compatible.
 class Erlang < Formula
   homepage 'http://www.erlang.org'
-  # Download tarball from GitHub; it is served faster than the official tarball.
-  url "https://github.com/erlang/otp/archive/OTP-17.1.tar.gz"
-  sha1 "f983a14152948a23418133155b5f9ba070544292"
 
-  head 'https://github.com/erlang/otp.git', :branch => 'master'
+  stable do
+    # Download tarball from GitHub; it is served faster than the official tarball.
+    url "https://github.com/erlang/otp/archive/OTP-17.3.4.tar.gz"
+    sha256 "bb8036c43b1aae12b2940968f2480701e7f431f09d46a0f204d94bf53b0b2b50"
+  end
+
+  head 'https://github.com/erlang/otp.git'
 
   bottle do
-    sha1 "5b36fc7bff7ddb0e4fb3ab220d5a1071e42b71ba" => :mavericks
-    sha1 "9f2620304d3b00110c9836fefb3aef69e5071170" => :mountain_lion
-    sha1 "c511b8f0706de912124258d5e1066850de8a59b3" => :lion
+    sha1 "d7ef1f3f93a1e7f404c1581d814bf7f78599e48d" => :yosemite
+    sha1 "bc0d5b0d84e9081eb48336eaed2395788cf9beef" => :mavericks
+    sha1 "bf139129a9ca2507182036fcacd054e1e5f00550" => :mountain_lion
   end
 
   resource "man" do
-    url "http://www.erlang.org/download/otp_doc_man_17.1.tar.gz"
-    sha1 "c23cc3c9d4b9ba5d1a61b2156be0edd16ce6144d"
+    url "http://www.erlang.org/download/otp_doc_man_17.3.tar.gz"
+    sha1 "3f7717186f572bb6431e1a1e5bc6c0f5ffd53171"
   end
 
   resource "html" do
-    url "http://www.erlang.org/download/otp_doc_html_17.1.tar.gz"
-    sha1 "6a8af3937fc87450b0c1acf4a35d311fd8042bf9"
+    url "http://www.erlang.org/download/otp_doc_html_17.3.tar.gz"
+    sha1 "fee5762225ef990e8c07aa4baa563a57208b0198"
   end
 
   option 'disable-hipe', "Disable building hipe; fails on various OS X systems"
@@ -43,8 +46,6 @@ class Erlang < Formula
   fails_with :llvm
 
   def install
-    ohai "Compilation takes a long time; use `brew install -v erlang` to see progress" unless ARGV.verbose?
-
     # Unset these so that building wx, kernel, compiler and
     # other modules doesn't fail with an unintelligable error.
     %w[LIBS FLAGS AFLAGS ZFLAGS].each { |k| ENV.delete("ERL_#{k}") }
