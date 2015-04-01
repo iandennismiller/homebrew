@@ -1,16 +1,18 @@
 class Ghc < Formula
-  homepage "http://haskell.org/ghc/"
-  url "https://downloads.haskell.org/~ghc/7.8.4/ghc-7.8.4-src.tar.xz"
-  sha256 "c319cd94adb284177ed0e6d21546ed0b900ad84b86b87c06a99eac35152982c4"
+  homepage "https://haskell.org/ghc/"
+  url "https://downloads.haskell.org/~ghc/7.10.1/ghc-7.10.1-src.tar.xz"
+  sha256 "92f3e3d67a637c587c49b61c704a670953509eb4b17a93c0c2ac153da4cd3aa0"
 
   bottle do
-    sha1 "34077e696ada63791ff32e044c51c8e538834b83" => :yosemite
-    sha1 "3780f6768dc740fb51fa3906cccb28ab06ce5acc" => :mavericks
-    sha1 "296802648e2b2bc26fcb01025fb1fa8ab583e64a" => :mountain_lion
+    sha256 "823759e556e408caf5624be4372905bb28b11cbdf8d539b40e81a40d6980b709" => :yosemite
+    sha256 "c696456ac242241931a5164874c3995bed14a4115abe79dc72a8432320b34f92" => :mavericks
+    sha256 "9cd86dd822512f3b82e6c7fb6b83300cd686721cdbf468cdb8f1a2a14f9f46e3" => :mountain_lion
   end
 
   option "32-bit"
-  option "tests", "Verify the build using the testsuite."
+  option "with-tests", "Verify the build using the testsuite."
+
+  deprecated_option "tests" => "with-tests"
 
   # http://hackage.haskell.org/trac/ghc/ticket/6009
   depends_on :macos => :snow_leopard
@@ -29,16 +31,26 @@ class Ghc < Formula
       sha256 "f7a35bea69b6cae798c5f603471a53b43c4cc5feeeeb71733815db6e0a280945"
     end
   else
+    # there is currently no 7.10.1 binary download for darwin,
+    # so we use the one for 7.8.4 instead
     resource "binary" do
-      # there is currently no 7.8.4 binary download for darwin
-      url "https://downloads.haskell.org/~ghc/7.8.3/ghc-7.8.3-x86_64-apple-darwin.tar.xz"
-      sha256 "dba74c4cfb3a07d243ef17c4aebe7fafe5b43804468f469fb9b3e5e80ae39e38"
+      url "https://downloads.haskell.org/~ghc/7.8.4/ghc-7.8.4-x86_64-apple-darwin.tar.xz"
+      sha256 "ebb6b0294534abda05af91798b43e2ea02481edacbf3d845a1e5925a211c67e3"
     end
   end
 
-  resource "testsuite" do
-    url "https://downloads.haskell.org/~ghc/7.8.4/ghc-7.8.4-testsuite.tar.xz"
-    sha256 "d0332f30868dcd0e7d64d1444df05737d1f3cf4b09f9cfbfec95f8831ce42561"
+  stable do
+    resource "testsuite" do
+      url "https://downloads.haskell.org/~ghc/7.10.1/ghc-7.10.1-testsuite.tar.xz"
+      sha256 "33bbdfcfa50363526ea9671c8c1f01b7c5dec01372604d45cbb53bb2515298cb"
+    end
+  end
+
+  fails_with :llvm do
+    cause <<-EOS.undent
+      cc1: error: unrecognized command line option "-Wno-invalid-pp-token"
+      cc1: error: unrecognized command line option "-Wno-unicode"
+    EOS
   end
 
   if build.build_32_bit? || !MacOS.prefer_64_bit? || MacOS.version < :mavericks
@@ -51,6 +63,10 @@ class Ghc < Formula
   end
 
   def install
+    # Copy gmp static libraries to build path (to avoid dynamic linking)
+    (buildpath/"gmp-lib-static").mkpath
+    cp Dir.glob("#{Formula["gmp"].lib}/*.a"), buildpath/"gmp-lib-static/"
+
     # Move the main tarball contents into a subdirectory
     (buildpath+"Ghcsource").install Dir["*"]
 
@@ -97,10 +113,11 @@ class Ghc < Formula
       # ensure configure does not use Xcode 5 "gcc" which is actually clang
       system "./configure", "--prefix=#{prefix}",
                             "--build=#{arch}-apple-darwin",
-                            "--with-gcc=#{ENV.cc}"
+                            "--with-gcc=#{ENV.cc}",
+                            "--with-gmp-includes=#{buildpath}/gmp-lib-static"
       system "make"
 
-      if build.include? "tests"
+      if build.with? "tests"
         resource("testsuite").stage do
           cd "testsuite" do
             (buildpath+"Ghcsource/config").install Dir["config/*"]

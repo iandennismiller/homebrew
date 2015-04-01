@@ -1,13 +1,14 @@
 class Global < Formula
   homepage "https://www.gnu.org/software/global/"
-  url "http://ftpmirror.gnu.org/global/global-6.3.3.tar.gz"
-  mirror "https://ftp.gnu.org/gnu/global/global-6.3.3.tar.gz"
-  sha1 "2e66fb1529fe1fb2c473507de91814df4eb50b93"
+  url "http://ftpmirror.gnu.org/global/global-6.3.4.tar.gz"
+  mirror "https://ftp.gnu.org/gnu/global/global-6.3.4.tar.gz"
+  sha1 "6b73c0b3c7eea025c8004f8d82d836f2021d0c9e"
 
   bottle do
-    sha1 "4262d5470592541e62fe7cc81613aa2397cea091" => :yosemite
-    sha1 "79955ca97a91adbd0e7642244ca2a89ffd9c8b0d" => :mavericks
-    sha1 "d4f3c419c93742e2740f268d00a185a8593cf0d8" => :mountain_lion
+    revision 1
+    sha1 "bb61eb5f9f950d47eaaa856c7fb18b354256d646" => :yosemite
+    sha1 "b295a8b0f40f07fccec741217dc05c38a4d42bc8" => :mavericks
+    sha1 "23d4ba161767bfe1d688442df1325a28cf0cc657" => :mountain_lion
   end
 
   head do
@@ -56,6 +57,7 @@ class Global < Formula
       bin.env_script_all_files(libexec/"bin", :PYTHONPATH => ENV["PYTHONPATH"])
     end
 
+    inreplace "gtags.conf", prefix, opt_prefix
     etc.install "gtags.conf"
 
     # we copy these in already

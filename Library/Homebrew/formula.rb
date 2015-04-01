@@ -347,6 +347,14 @@ class Formula
     method(:post_install).owner == self.class
   end
 
+  # @private
+  def run_post_install
+    build, self.build = self.build, Tab.for_formula(self)
+    post_install
+  ensure
+    self.build = build
+  end
+
   # tell the user about any caveats regarding this package, return a string
   def caveats; nil end
 
@@ -531,8 +539,6 @@ class Formula
       "#$1/#$2"
     elsif core_formula?
       "Homebrew/homebrew"
-    else
-      "path or URL"
     end
   end
 
@@ -585,7 +591,7 @@ class Formula
       "installed" => [],
       "linked_keg" => (linked_keg.resolved_path.basename.to_s if linked_keg.exist?),
       "keg_only" => keg_only?,
-      "dependencies" => deps.map(&:name),
+      "dependencies" => deps.map(&:name).uniq,
       "conflicts_with" => conflicts.map(&:name),
       "caveats" => caveats
     }
@@ -606,6 +612,8 @@ class Formula
           "poured_from_bottle" => tab.poured_from_bottle
         }
       end
+
+      hsh["installed"] = hsh["installed"].sort_by { |i| Version.new(i["version"]) }
     end
 
     hsh
@@ -621,8 +629,8 @@ class Formula
   end
 
   def run_test
-    @oldhome = ENV["HOME"]
-    self.build = Tab.for_formula(self)
+    old_home = ENV["HOME"]
+    build, self.build = self.build, Tab.for_formula(self)
     mktemp do
       @testpath = Pathname.pwd
       ENV["HOME"] = @testpath
@@ -630,7 +638,8 @@ class Formula
     end
   ensure
     @testpath = nil
-    ENV["HOME"] = @oldhome
+    self.build = build
+    ENV["HOME"] = old_home
   end
 
   def test_defined?
@@ -998,4 +1007,3 @@ class Formula
   end
 end
 
-require 'formula_specialties'

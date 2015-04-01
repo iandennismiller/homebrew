@@ -1,9 +1,9 @@
 class Galen < Formula
   homepage "http://galenframework.com/"
-  url "https://github.com/galenframework/galen/releases/download/galen-1.5.1/galen-bin-1.5.1.zip"
-  sha1 "ea3e261e0409c8797a3c627536444bfd4c5ff311"
+  url "https://github.com/galenframework/galen/releases/download/galen-1.6.0/galen-bin-1.6.0.zip"
+  sha256 "b205734f6f460c2e1663b5bc9f7a009f9c0ab1ec9075e9a2cbd32e60ea2f2562"
 
-  depends_on :java => "1.6"
+  depends_on :java => "1.6+"
 
   def install
     libexec.install "galen.jar"

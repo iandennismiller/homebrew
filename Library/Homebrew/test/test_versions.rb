@@ -230,23 +230,23 @@ class VersionParsingTests < Homebrew::TestCase
   end
 
   def test_bottle_style
-    assert_version_detected '4.8.0', 'https://downloads.sf.net/project/machomebrew/Bottles/qt-4.8.0.lion.bottle.tar.gz'
+    assert_version_detected '4.8.0', 'https://homebrew.bintray.com/bottles/qt-4.8.0.lion.bottle.tar.gz'
   end
 
   def test_versioned_bottle_style
-    assert_version_detected '4.8.1', 'https://downloads.sf.net/project/machomebrew/Bottles/qt-4.8.1.lion.bottle.1.tar.gz'
+    assert_version_detected '4.8.1', 'https://homebrew.bintray.com/bottles/qt-4.8.1.lion.bottle.1.tar.gz'
   end
 
   def test_erlang_bottle_style
-    assert_version_detected 'R15B', 'https://downloads.sf.net/project/machomebrew/Bottles/erlang-R15B.lion.bottle.tar.gz'
+    assert_version_detected 'R15B', 'https://homebrew.bintray.com/bottles/erlang-R15B.lion.bottle.tar.gz'
   end
 
   def test_another_erlang_bottle_style
-    assert_version_detected 'R15B01', 'https://downloads.sf.net/project/machomebrew/Bottles/erlang-R15B01.mountain_lion.bottle.tar.gz'
+    assert_version_detected 'R15B01', 'https://homebrew.bintray.com/bottles/erlang-R15B01.mountain_lion.bottle.tar.gz'
   end
 
   def test_yet_another_erlang_bottle_style
-    assert_version_detected 'R15B03-1', 'https://downloads.sf.net/project/machomebrew/Bottles/erlang-R15B03-1.mountainlion.bottle.tar.gz'
+    assert_version_detected 'R15B03-1', 'https://homebrew.bintray.com/bottles/erlang-R15B03-1.mountainlion.bottle.tar.gz'
   end
 
   def test_imagemagick_style
@@ -254,11 +254,11 @@ class VersionParsingTests < Homebrew::TestCase
   end
 
   def test_imagemagick_bottle_style
-    assert_version_detected '6.7.5-7', 'https://downloads.sf.net/project/machomebrew/Bottles/imagemagick-6.7.5-7.lion.bottle.tar.gz'
+    assert_version_detected '6.7.5-7', 'https://homebrew.bintray.com/bottles/imagemagick-6.7.5-7.lion.bottle.tar.gz'
   end
 
   def test_imagemagick_versioned_bottle_style
-    assert_version_detected '6.7.5-7', 'https://downloads.sf.net/project/machomebrew/Bottles/imagemagick-6.7.5-7.lion.bottle.1.tar.gz'
+    assert_version_detected '6.7.5-7', 'https://homebrew.bintray.com/bottles/imagemagick-6.7.5-7.lion.bottle.1.tar.gz'
   end
 
   def test_dash_version_dash_style
@@ -353,7 +353,13 @@ class VersionParsingTests < Homebrew::TestCase
   def test_with_arch
     assert_version_detected '4.0.18-1',
       'http://ftpmirror.gnu.org/mtools/mtools-4.0.18-1.i686.rpm'
+    assert_version_detected '5.5.7-5',
+      'http://ftpmirror.gnu.org/autogen/autogen-5.5.7-5.i386.rpm'
     assert_version_detected '2.8',
       'http://ftpmirror.gnu.org/libtasn1/libtasn1-2.8-x86.zip'
+    assert_version_detected '2.8',
+      'http://ftpmirror.gnu.org/libtasn1/libtasn1-2.8-x64.zip'
+    assert_version_detected '4.0.18',
+      'http://ftpmirror.gnu.org/mtools/mtools_4.0.18_i386.deb'
   end
 end

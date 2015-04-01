@@ -192,8 +192,15 @@ class FormulaInstaller
     return if ARGV.force?
 
     conflicts = formula.conflicts.select do |c|
-      f = Formulary.factory(c.name)
-      f.linked_keg.exist? && f.opt_prefix.exist?
+      begin
+        f = Formulary.factory(c.name)
+        f.linked_keg.exist? && f.opt_prefix.exist?
+      rescue FormulaUnavailableError
+        raise unless c.name =~ HOMEBREW_TAP_FORMULA_REGEX
+        # If the formula name is in full-qualified name. Let's silently
+        # ignore it as we don't care about things used in taps that aren't
+        # currently tapped.
+      end
     end
 
     raise FormulaConflictError.new(formula, conflicts) unless conflicts.empty?
@@ -560,6 +567,8 @@ class FormulaInstaller
     return unless formula.plist
     formula.plist_path.atomic_write(formula.plist)
     formula.plist_path.chmod 0644
+    log = formula.var/"log"
+    log.mkpath if formula.plist.include? log.to_s
   rescue Exception => e
     onoe "Failed to install plist file"
     ohai e, e.backtrace if debug?
@@ -594,7 +603,7 @@ class FormulaInstaller
   end
 
   def post_install
-    formula.post_install
+    formula.run_post_install
   rescue Exception => e
     opoo "The post-install step did not complete successfully"
     puts "You can try again using `brew postinstall #{formula.name}`"

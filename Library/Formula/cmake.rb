@@ -1,39 +1,20 @@
-class NoExpatFramework < Requirement
-  def expat_framework
-    "/Library/Frameworks/expat.framework"
-  end
-
-  satisfy :build_env => false do
-    !File.exist? expat_framework
-  end
-
-  def message; <<-EOS.undent
-    Detected #{expat_framework}
-
-    This will be picked up by CMake's build system and likely cause the
-    build to fail, trying to link to a 32-bit version of expat.
-
-    You may need to move this file out of the way to compile CMake.
-    EOS
-  end
-end
-
 class Cmake < Formula
   homepage "http://www.cmake.org/"
-  url "http://www.cmake.org/files/v3.1/cmake-3.1.1.tar.gz"
-  sha1 "e96098e402903e09f56d0c4cfef516e591088d78"
+  url "http://www.cmake.org/files/v3.2/cmake-3.2.1.tar.gz"
+  sha1 "53c1fe2aaae3b2042c0fe5de177f73ef6f7b267f"
   head "http://cmake.org/cmake.git"
 
   bottle do
     cellar :any
-    sha1 "07f01687556e245b2315707fb267d4cf110d54a9" => :yosemite
-    sha1 "b2ca8a4a1bf32b71bc48a8415e7ffd2641dcac12" => :mavericks
-    sha1 "a251d4e9dafec01479b6be991ebce25b25cf231c" => :mountain_lion
+    revision 2
+    sha256 "99411c03795b8ef85e52b5296d54540af18724215f67a66686737e91abec35a8" => :yosemite
+    sha256 "ce230e1dff6108a48083ab36dfc5ae8011b03244c950557b8acfcf3189a4f146" => :mavericks
+    sha256 "e8b6dd510da6ce5523dba550ac36d9d82b86952f9ed3d924e5d10e892f0fc94c" => :mountain_lion
   end
 
   option "without-docs", "Don't build man pages"
+
   depends_on :python => :build if MacOS.version <= :snow_leopard && build.with?("docs")
-  depends_on "xz" # For LZMA
 
   # The `with-qt` GUI option was removed due to circular dependencies if
   # CMake is built with Qt support and Qt is built with MySQL support as MySQL uses CMake.
@@ -64,8 +45,6 @@ class Cmake < Formula
     sha1 "cd5c22acf6dd69046d6cb6a3920d84ea66bdf62a"
   end
 
-  depends_on NoExpatFramework
-
   def install
     if build.with? "docs"
       ENV.prepend_create_path "PYTHONPATH", buildpath+"sphinx/lib/python2.7/site-packages"
@@ -82,12 +61,14 @@ class Cmake < Formula
 
     args = %W[
       --prefix=#{prefix}
-      --system-libs
+      --no-system-libs
       --parallel=#{ENV.make_jobs}
-      --no-system-libarchive
       --datadir=/share/cmake
       --docdir=/share/doc/cmake
       --mandir=/share/man
+      --system-curl
+      --system-zlib
+      --system-bzip2
     ]
 
     if build.with? "docs"

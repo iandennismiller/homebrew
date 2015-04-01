@@ -1,16 +1,14 @@
-require "formula"
-
 class Jenkins < Formula
   homepage "https://jenkins-ci.org"
-  url "http://mirrors.jenkins-ci.org/war/1.598/jenkins.war"
-  sha1 "ee3f94a2eab93a119baaa897a2fd0045cc401e73"
+  url "http://mirrors.jenkins-ci.org/war/1.607/jenkins.war"
+  sha1 "805baa7d4f5047b78fe3e8987c5c6d352e60b77e"
 
   head do
     url "https://github.com/jenkinsci/jenkins.git"
     depends_on "maven" => :build
   end
 
-  depends_on :java => "1.6"
+  depends_on :java => "1.6+"
 
   def install
     if build.head?
