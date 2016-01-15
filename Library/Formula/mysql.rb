@@ -1,23 +1,18 @@
 class Mysql < Formula
-  homepage "https://dev.mysql.com/doc/refman/5.6/en/"
-  url "https://cdn.mysql.com/Downloads/MySQL-5.6/mysql-5.6.23.tar.gz"
-  sha1 "2d610ba01ab97df042d5946ba0da411da5547c5d"
+  desc "Open source relational database management system"
+  homepage "https://dev.mysql.com/doc/refman/5.7/en/"
+  url "https://cdn.mysql.com/Downloads/MySQL-5.7/mysql-5.7.10.tar.gz"
+  sha256 "1ea1644884d086a23eafd8ccb04d517fbd43da3a6a06036f23c5c3a111e25c74"
 
   bottle do
-    sha1 "9edc48cf27c50b6f51bfd90af86716a4a36b39e8" => :yosemite
-    sha1 "e4aee77fd9a4882bd85a718b622fbd817d87e4ae" => :mavericks
-    sha1 "38ef7c81c209fd7ca55f3769c32c9ae593f4384d" => :mountain_lion
-  end
-
-  # Fixes compilation with OpenSSL 1.0.2
-  # https://bugs.mysql.com/bug.php?id=75623
-  patch do
-    url "https://github.com/mysql/mysql-server/pull/3.diff"
-    sha1 "6b17a31ee32e373dca0f257f7c7884ac6dcf8e1f"
+    revision 1
+    sha256 "866d0adbfe88f626452006bb50aa9489413a81a03cbef40c3175f7e7daaab879" => :el_capitan
+    sha256 "048629d5759e5aa7cabd934214a011c30c1f94c57ea47c8b853b338213572c77" => :yosemite
+    sha256 "84b963def9d2ff10bd21435ac2b9b87cce34a8e68bb9e82e3b2c6a0200970975" => :mavericks
   end
 
   option :universal
-  option "with-tests", "Build with unit tests"
+  option "with-test", "Build with unit tests"
   option "with-embedded", "Build the embedded server"
   option "with-archive-storage-engine", "Compile with the ARCHIVE storage engine enabled"
   option "with-blackhole-storage-engine", "Compile with the BLACKHOLE storage engine enabled"
@@ -28,8 +23,10 @@ class Mysql < Formula
   deprecated_option "enable-local-infile" => "with-local-infile"
   deprecated_option "enable-memcached" => "with-memcached"
   deprecated_option "enable-debug" => "with-debug"
+  deprecated_option "with-tests" => "with-test"
 
   depends_on "cmake" => :build
+  depends_on "boost" => :build
   depends_on "pidof" unless MacOS.version >= :mountain_lion
   depends_on "openssl"
 
@@ -44,7 +41,7 @@ class Mysql < Formula
   end
 
   def datadir
-    var+"mysql"
+    var/"mysql"
   end
 
   def install
@@ -58,7 +55,7 @@ class Mysql < Formula
     # compilation of gems and other software that queries `mysql-config`.
     ENV.minimal_optimization
 
-    # -DINSTALL_* are relative to prefix
+    # -DINSTALL_* are relative to `CMAKE_INSTALL_PREFIX` (`prefix`)
     args = %W[
       .
       -DCMAKE_INSTALL_PREFIX=#{prefix}
@@ -80,7 +77,7 @@ class Mysql < Formula
     ]
 
     # To enable unit testing at build, we need to download the unit testing suite
-    if build.with? "tests"
+    if build.with? "test"
       args << "-DENABLE_DOWNLOADS=ON"
     else
       args << "-DWITH_UNIT_TESTS=OFF"
@@ -116,9 +113,12 @@ class Mysql < Formula
 
     # Don't create databases inside of the prefix!
     # See: https://github.com/Homebrew/homebrew/issues/4975
-    rm_rf prefix+"data"
+    rm_rf prefix/"data"
 
-    # Link the setup script into bin
+    # Perl script was removed in 5.7.9 so install C++ binary instead.
+    # Binary is deprecated & will be removed in future upstream
+    # update but is still required for mysql-test-run to pass in test.
+    (prefix/"scripts").install "client/mysql_install_db"
     bin.install_symlink prefix/"scripts/mysql_install_db"
 
     # Fix up the control script and link into bin
@@ -129,30 +129,34 @@ class Mysql < Formula
     end
 
     bin.install_symlink prefix/"support-files/mysql.server"
-
-    # Move mysqlaccess to libexec
-    libexec.mkpath
-    mv "#{bin}/mysqlaccess", libexec
-    mv "#{bin}/mysqlaccess.conf", libexec
   end
 
   def post_install
     # Make sure the datadir exists
     datadir.mkpath
-    unless File.exist? "#{datadir}/mysql/user.frm"
+    unless (datadir/"mysql/user.frm").exist?
       ENV["TMPDIR"] = nil
-      system "#{bin}/mysql_install_db", "--verbose", "--user=#{ENV["USER"]}",
+      system bin/"mysqld", "--initialize-insecure", "--user=#{ENV["USER"]}",
         "--basedir=#{prefix}", "--datadir=#{datadir}", "--tmpdir=/tmp"
     end
   end
 
-  def caveats; <<-EOS.undent
-    A "/etc/my.cnf" from another install may interfere with a Homebrew-built
-    server starting up correctly.
+  def caveats
+    s = <<-EOS.undent
+    We've installed your MySQL database without a root password. To secure it run:
+        mysql_secure_installation
 
-    To connect:
+    To connect run:
         mysql -uroot
     EOS
+    if File.exist? "/etc/my.cnf"
+      s += <<-EOS.undent
+
+        A "/etc/my.cnf" from another install may interfere with a Homebrew-built
+        server starting up correctly.
+      EOS
+    end
+    s
   end
 
   plist_options :manual => "mysql.server start"
@@ -182,8 +186,9 @@ class Mysql < Formula
   end
 
   test do
-    (prefix+"mysql-test").cd do
-      system "./mysql-test-run.pl", "status"
+    system "/bin/sh", "-n", "#{bin}/mysqld_safe"
+    (prefix/"mysql-test").cd do
+      system "./mysql-test-run.pl", "status", "--vardir=#{testpath}"
     end
   end
 end

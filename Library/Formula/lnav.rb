@@ -1,14 +1,13 @@
-require 'formula'
-
 class Lnav < Formula
-  homepage 'http://lnav.org'
-  url 'https://github.com/tstack/lnav/releases/download/v0.7.2/lnav-0.7.2.tar.gz'
-  sha1 'f679a5a3b52a05edf6ab2446182e085d1953c1fc'
+  desc "Curses-based tool for viewing and analyzing log files"
+  homepage "http://lnav.org"
+  url "https://github.com/tstack/lnav/releases/download/v0.8.0/lnav-0.8.0.tar.gz"
+  sha256 "fbebe3f4656c89b307fe06e7746e6146ae856048413a7cd98aaf8fc2bb34fc33"
 
   bottle do
-    sha256 "8c178133d92e3fe244d60aef590f17943ae494a12a5b0be40bad789dc6646de2" => :yosemite
-    sha256 "ab85080c57d96be9a391ce8e1eff67fda43653c1f0328290d4ba2b8253ca3af0" => :mavericks
-    sha256 "26892fd713417b2b84a6615a63d9492a683f53a7fb497dd2b4a681d7267cc2a5" => :mountain_lion
+    sha256 "e9517c62ec980ae5cf4e23927806f6d701b70feb2d8097dedbbc9c35eb91c572" => :el_capitan
+    sha256 "e58d5a2f1ca5db2282969a230b8896ca18092d627bb35078f3e53ab6c8690284" => :yosemite
+    sha256 "28f135c1ca5201566eec2e75a9c724fc77af0b1c7d12a821438246b14db4e840" => :mavericks
   end
 
   head do
@@ -16,10 +15,12 @@ class Lnav < Formula
 
     depends_on "autoconf" => :build
     depends_on "automake" => :build
+    depends_on "re2c" => :build
   end
 
-  depends_on 'readline'
-  depends_on 'pcre'
+  depends_on "readline"
+  depends_on "pcre"
+  depends_on "curl" => ["with-libssh2", :optional]
 
   def install
     system "./autogen.sh" if build.head?

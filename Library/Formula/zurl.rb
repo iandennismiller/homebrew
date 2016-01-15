@@ -1,13 +1,14 @@
 class Zurl < Formula
+  desc "HTTP and WebSocket client worker with ZeroMQ interface"
   homepage "https://github.com/fanout/zurl"
-  url "http://packages.fanout.io/source/zurl-1.3.1.tar.bz2"
-  sha1 "8a04ad092a4fd9b174a352b910c190466fc39eb9"
+  url "https://dl.bintray.com/fanout/source/zurl-1.4.10.tar.bz2"
+  sha256 "4e430166171edff18c2557b26365e97ca7f4f56447afb3580e044919016ff788"
 
   bottle do
     cellar :any
-    sha1 "1bdbedac8c648f56a5fa72724157e4f7d3861b3e" => :yosemite
-    sha1 "a8da3afaeb13e55de3abacbe03fd2500ecb23533" => :mavericks
-    sha1 "65a4a270eb23fe38d6d2e748224ae37c40edc17f" => :mountain_lion
+    sha256 "9661548ae2d9f4a54416d95c57e1b3b6b090caa047cc932d551ba26cbffec17e" => :el_capitan
+    sha256 "33b3c72805f2e85a5d7681b56e14f96c999ca77ed11396e2c4cd8e3f27a19949" => :yosemite
+    sha256 "a5c4d4b61aebbdb5e209240ef090a5d33971966af1ac7d3ef0f5726aacc73f51" => :mavericks
   end
 
   depends_on "pkg-config" => :build
@@ -17,8 +18,8 @@ class Zurl < Formula
   depends_on "qjson"
 
   resource "pyzmq" do
-    url "https://pypi.python.org/packages/source/p/pyzmq/pyzmq-14.5.0.tar.gz"
-    sha1 "1dced02ea8527b5870ffdbe835d096aca5c01d2a"
+    url "https://pypi.python.org/packages/source/p/pyzmq/pyzmq-14.6.0.tar.gz"
+    sha256 "7746806ff94f1e8c1e843644c6bbd3b9aaeb1203c2eaf38879adc23dbd5c35bb"
   end
 
   def install
@@ -40,7 +41,7 @@ class Zurl < Formula
       defpolicy=allow
       timeout=10
       EOS
-      )
+                  )
 
     runfile.write(<<-EOS.undent
       import json
@@ -84,7 +85,7 @@ class Zurl < Formula
       assert('type' not in resp)
       assert(resp['body'] == 'test response\\n')
       EOS
-      )
+                 )
 
     pid = fork do
       exec "#{bin}/zurl", "--config=#{conffile}"

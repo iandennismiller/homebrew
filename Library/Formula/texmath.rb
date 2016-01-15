@@ -3,28 +3,22 @@ require "language/haskell"
 class Texmath < Formula
   include Language::Haskell::Cabal
 
+  desc "Haskell library for converting LaTeX math to MathML"
   homepage "http://johnmacfarlane.net/texmath.html"
-  url "https://hackage.haskell.org/package/texmath-0.8.0.2/texmath-0.8.0.2.tar.gz"
-  sha256 "47b9c3fdceed63c5d63987db7e511a38ea8ddf8591786ef56efea734a3c31f86"
+  url "https://github.com/jgm/texmath/archive/0.8.4.1.tar.gz"
+  sha256 "f3e6e8ba0136462299c8873e9aefc05aa61a85b782ba8e487d4fc4a1fe10005f"
 
   bottle do
-    sha256 "2b95621346d6c76d000f6830efc0104eb6c6cacc4b256b30418e4d7a67290fb0" => :yosemite
-    sha256 "a24734d011de31db7494f97bcb019116053867ca630e1c13a9063bea30af38e0" => :mavericks
-    sha256 "8a72fa59caf3ae61a99202361bec3523adab83d4e2b909d0e7de16f4a84256a1" => :mountain_lion
+    sha256 "918f6900fe1de5b3aec79a3235f36e9568b0f3813bfa5ca4cd0cab940e282042" => :el_capitan
+    sha256 "5df6efcd9d088e8e572bff63824f992cfc5ca024546165c9908c4363a3a6361a" => :yosemite
+    sha256 "7d81c8e4f6c6bc56017ae573cc6eba4f068e2cfdce669472492a5a23d3b0d672" => :mavericks
   end
 
   depends_on "ghc" => :build
   depends_on "cabal-install" => :build
-  depends_on "gmp"
-
-  fails_with(:clang) { build 425 } # clang segfaults on Lion
 
   def install
-    cabal_sandbox do
-      cabal_install "--only-dependencies"
-      cabal_install "--prefix=#{prefix}", "-fexecutable"
-    end
-    cabal_clean_lib
+    install_cabal_package "-f executable"
   end
 
   test do
